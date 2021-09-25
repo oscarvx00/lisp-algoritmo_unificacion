@@ -79,17 +79,6 @@
     )
 )
 
-(defun aplicar (expr list)
-
-  ;COMPROBACIONES
-  
-
-
-)
-
-
-() / ()
-
 
 (defun aplicar (expresion lista)
     (cond
