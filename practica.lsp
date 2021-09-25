@@ -1,14 +1,3 @@
-
-
-
-;(prog (var1 var2) estas variables son locales
-;  cuerpo return
-;)
-
-;(defun (var1 var2)
-;
-;)
-
 (prog unificate (E1, E2)
   (cond
     ((is_atom e1)
@@ -43,13 +32,11 @@
 
 );fin unificar
 
-
 ;ESPACIO INICIALIZACION
 (setf variable-a '(? a))
 (setf lista-ab (cons variable-a '(b)))
 (setf lista-cd '(c d))
 ;
-
 
 (defun top (e1 e2)
   (cond
@@ -66,7 +53,6 @@
     (t 'error)   
   )
 );fin defun
-
 
 (defun is_atom (var)
   (cond((atom var) T)
@@ -93,19 +79,63 @@
     )
 )
 
+(defun aplicar (expr list)
 
-(defun anadir (e1 e2)
-    (unless (equalp (valorVariable e1) (valorVariable e2)) ; Si e1=e2 no hacer nada
-        (if (esVariable e1)
-            (if (miembro e1 e2)
-                 (return-from anadir 'fallo)
-                 (list e2 'barra e1)
+  ;COMPROBACIONES
+  
+
+
+)
+
+
+() / ()
+
+
+(defun aplicar (expresion lista)
+    (cond
+        ((or (null expresion) (atomo expresion)) lista)
+        ((null lista) nil)
+        ((not(equalp (first (rest expresion)) 'barra))
+            (aplicar (rest expresion) (aplicar (first expresion) lista))
+        )
+        ((esVariable lista) ; si lista es una variable
+            (if (equalp lista (first (last expresion))) ; si la lista es igual al primer elemento del ultimo elemento de la expresion 
+                (first expresion) ; devuelve el primer elemento de la expresion
+                lista ; si no, devuelve la lista
             )
-            (if (esVariable e2)
-                 (list e1 'barra e2)
-                 (return-from anadir 'fallo)
+        )
+        ((equalp lista (last expresion))
+            (first expresion)
+        )
+        ((atom lista) lista)
+        (t
+            (setf parte1 (aplicar expresion (first lista)))
+            (setf parte2 (aplicar expresion (rest lista)))
+            (if (null parte1)
+                parte2
+                (if (null parte2)
+                    parte1
+                    (list
+                        (aplicar expresion (first lista))
+                        (aplicar expresion (rest lista))
+                    )
+                )
             )
         )
     )
 )
 
+while(expresion in expresiones){
+  while(componente in lista){
+    lista.aplicarExpresion(expresion)
+  }
+}
+
+(defun printlista (lista)
+
+  (loop for x in '(1 2 3)
+  collect (* x 10))
+)
+
+(loop for x in '()
+  do (print x))
