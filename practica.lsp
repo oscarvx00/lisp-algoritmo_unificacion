@@ -109,9 +109,10 @@
 
 (defun aplicar (lista expresion)
 
-  x Y/x 
-
   (cond
+    ((or (null expresion) (is_atom expresion)) lista)
+    ((null lista) nil)
+    ;; CASOS BASE
     ; A Y/A   Si el item de la lista es igual al ultimo de la expresion devolvemos la parte superior de la expresión
     ((equalp lista (last expresion))
       (first expresion)
@@ -123,74 +124,57 @@
         lista             ;no cambia nada porque no cumple las reglas
       );fin if
     )
+    ;;CASOS RECURSIVOS
+    ((not (equalp (first (rest expresion)) 'barra)) ;si aun no hemos llegado a la condicion en rest expresion, llamamos recursivamente a la funcion de nuevo
+      (aplicar (aplicar lista (first expresion)) (rest expresion))
+    )
+    ((atom lista) lista)  ;Si la lista es un atomo salimos de la recursividad ya que no podemos avanzar mas niveles
+    (t
+      (setf parte1 (aplicar (first lista) expresion))
+      (setf parte2 (aplicar (rest lista) expresion))
+      (if (null parte1)
+          parte2
+          (if (null parte2)
+              parte1
+              (list
+                  (aplicar (first lista) expresion)
+                  (aplicar (rest lista) expresion)
+              )
+          )
+      )
+    ); fin default
   );fin cond
 
 )
 
-(defun aplicar (expresion lista) ; expresio: ((A / (? x)((? y)/(? z)))) lista (x g (k) f (z)) ()
-
-    (cond                   
-        ((or (null expresion) (is_atom expresion)) lista)
-        ((null lista) nil)
-        ((not(equalp (first (rest expresion)) 'barra))
-            (aplicar (rest expresion) (aplicar (first expresion) lista))
-        )
-        ((is_var lista) ; si lista es una variable
-            (if (equalp lista (first (last expresion))) ; si la lista es igual al primer elemento del ultimo elemento de la expresion 
-                (first expresion) ; devuelve el primer elemento de la expresion
-                lista ; si no, devuelve la lista
-            )
-        )
-
-        ; x x/Y   Si el item de la lista es igual al ultimo de la expresion devolvemos la parte superior de la expresión
-        ((equalp lista (last expresion))
-            (first expresion)
-        )
-        ((atom lista) lista)
-        (t
-            (setf parte1 (aplicar expresion (first lista)))
-            (setf parte2 (aplicar expresion (rest lista)))
-            (if (null parte1)
-                parte2
-                (if (null parte2)
-                    parte1
-                    (list
-                        (aplicar expresion (first lista))
-                        (aplicar expresion (rest lista))
-                    )
-                )
-            )
-        )
-    )
-)
 
 (defun componer (lista1 lista2)
-    (cond
-        ((null lista1) lista2)
-        ((null lista2) lista1)
-        (t
-            (cond
-                ((and (esExpresion lista1) (esExpresion lista2))
-                    (if (equalp lista1 lista2)
-                        lista1
-                        (list lista1 lista2)
-                    )
-                )
-                ((esExpresion lista1)
-                    (progn
-                        (setf listaBuena (list (aplicar lista2 (first lista1)) 'barra (first (last lista1))))
-                        (flatten (list listaBuena (unir (first (last lista1)) lista2)))
-                    )
-                )
-                ((esExpresion lista2)
-                    (progn
-                        (setf listaBuena (flatten (list (componer (first lista1) lista2) (componer (rest lista1) lista2))))
-                        (flatten (list listaBuena lista2))
-                    )
-                )
-            )
+  (cond
+    ((null lista1) lista2)
+    ((null lista2) lista1)
+    (t
+      (cond
+        ((and (esExpresion lista1) (esExpresion lista2))
+          (if (equalp lista1 lista2)
+            lista1
+            (list lista1 lista2)
+          )
         )
+        ((esExpresion lista1)
+          (progn
+            (setf listaBuena (list (aplicar lista2 (first lista1)) 'barra (first (last lista1))))
+            (flatten (list listaBuena (unir (first (last lista1)) lista2)))
+          )
+        )
+        ((esExpresion lista2)
+          (progn
+            (setf listaBuena (flatten (list (componer (first lista1) lista2) (componer (rest lista1) lista2))))
+            (flatten (list listaBuena lista2))
+          )
+        )
+      )
     )
+  )
 )
 
 ; Une los elementos de la composicón tras haber aplicado uno al otro
@@ -233,18 +217,3 @@
         )
     )
 )
-
-while(expresion in expresiones){
-  while(componente in lista){
-    lista.aplicarExpresion(expresion)
-  }
-}
-
-(defun printlista (lista)
-
-  (loop for x in '(1 2 3)
-  collect (* x 10))
-)
-
-(loop for x in '()
-  do (print x))
