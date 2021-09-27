@@ -1,4 +1,4 @@
-(prog unificate (E1, E2)
+(defun unificate (e1 e2)
   (cond
     ((is_atom e1)
       (top e1 e2)
@@ -7,13 +7,13 @@
       (top e2 e1)
     )
     (t
-      ;LA reconcha de su madre
       (let ((f1 (first e1))
             (f2 (first e2))
             (t1 (rest e1))
             (t2 (rest e2))
             (z1 nil)
             (z2 nil))
+            
           (setf z1 (unificate f1 f2))
           (if (equalp z1 'error)
               'error
@@ -29,13 +29,30 @@
       )
     )
   )
-
 );fin unificar
 
 ;ESPACIO INICIALIZACION
 (setf variable-a '(? a))
 (setf lista-ab (cons variable-a '(b)))
 (setf lista-cd '(c d))
+
+(setf var-z '(? z))
+(setf var-y '(? y))
+(setf var-g '(? g))
+(setf var-x '(? x))
+
+(setf lista-aux-1 (list 'F 'A))
+(setf lista-aux-2 (append lista-aux-1 (list var-x)))
+(setf lista-aux-3 (cons 'P (list lista-aux-2)))
+(setf entrada-1 (append lista-aux-3 (list var-z)))
+
+(setf lista-aux-4 (list var-g 'D))
+(setf lista-aux-5 (cons 'P (list var-y)))
+(setf entrada-2 (append lista-aux-5 (list lista-aux-4)))
+
+
+;(setf arg1 (P (F A (? x)) (? z)))
+;(setf arg2 (P (? y) ((? g) D)))
 ;
 
 (defun top (e1 e2)
@@ -80,19 +97,52 @@
 )
 
 
-(defun aplicar (expresion lista)
+(defun esExpresion (expresion)
     (cond
-        ((or (null expresion) (atomo expresion)) lista)
+        ((is_atom expresion) nil)
+        (t
+            (equalp (first (rest expresion)) 'barra)
+        )
+    )
+)
+
+
+(defun aplicar (lista expresion)
+
+  x Y/x 
+
+  (cond
+    ; A Y/A   Si el item de la lista es igual al ultimo de la expresion devolvemos la parte superior de la expresión
+    ((equalp lista (last expresion))
+      (first expresion)
+    )
+    ; (? x) Y/((? x))
+    ((is_var lista)
+      (if(equalp lista (first (last expresion)))       ;;(? x) Y/(? x)
+        (first expresion) ;caso en que la regla cumpla las condiciones para aplicarse, envia la sustitucion
+        lista             ;no cambia nada porque no cumple las reglas
+      );fin if
+    )
+  );fin cond
+
+)
+
+(defun aplicar (expresion lista) ; expresio: ((A / (? x)((? y)/(? z)))) lista (x g (k) f (z)) ()
+
+    (cond                   
+        ((or (null expresion) (is_atom expresion)) lista)
         ((null lista) nil)
         ((not(equalp (first (rest expresion)) 'barra))
             (aplicar (rest expresion) (aplicar (first expresion) lista))
         )
-        ((esVariable lista) ; si lista es una variable
+        ((is_var lista) ; si lista es una variable
             (if (equalp lista (first (last expresion))) ; si la lista es igual al primer elemento del ultimo elemento de la expresion 
                 (first expresion) ; devuelve el primer elemento de la expresion
                 lista ; si no, devuelve la lista
             )
         )
+
+        ; x x/Y   Si el item de la lista es igual al ultimo de la expresion devolvemos la parte superior de la expresión
         ((equalp lista (last expresion))
             (first expresion)
         )
@@ -110,6 +160,76 @@
                     )
                 )
             )
+        )
+    )
+)
+
+(defun componer (lista1 lista2)
+    (cond
+        ((null lista1) lista2)
+        ((null lista2) lista1)
+        (t
+            (cond
+                ((and (esExpresion lista1) (esExpresion lista2))
+                    (if (equalp lista1 lista2)
+                        lista1
+                        (list lista1 lista2)
+                    )
+                )
+                ((esExpresion lista1)
+                    (progn
+                        (setf listaBuena (list (aplicar lista2 (first lista1)) 'barra (first (last lista1))))
+                        (flatten (list listaBuena (unir (first (last lista1)) lista2)))
+                    )
+                )
+                ((esExpresion lista2)
+                    (progn
+                        (setf listaBuena (flatten (list (componer (first lista1) lista2) (componer (rest lista1) lista2))))
+                        (flatten (list listaBuena lista2))
+                    )
+                )
+            )
+        )
+    )
+)
+
+; Une los elementos de la composicón tras haber aplicado uno al otro
+(defun unir (elemento lista)
+    (cond
+        ((null lista) nil)
+        ((esExpresion lista)
+            (if (equalp elemento (first (last lista)))
+                    nil
+                    lista
+            )
+        )
+        (t
+            (let ((parte1 nil)
+                  (parte2 nil))
+                (setf parte1 (unir elemento (first lista)))
+                (setf parte2 (unir elemento (rest lista)))
+                (if (null parte1)
+                    (if (null parte2)
+                        nil
+                        parte2
+                    )
+                    (if (null parte2)
+                        parte1
+                        (flatten (list parte1 parte2))
+                    )
+                )
+            )
+        )
+    )
+)
+
+; Función que elimina paréntesis innecesarios
+(defun flatten (l)
+    (cond ((null l) nil)
+        ((atom l) (list l))
+        ((esExpresion l) (list l))
+        (t
+            (loop for a in l appending (flatten a))
         )
     )
 )
