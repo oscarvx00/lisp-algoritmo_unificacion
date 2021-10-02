@@ -56,9 +56,10 @@
 (defun add-pair (term variable u)
   "Trys to add the pair (TERM VARIABLE) to the list U and
    return the new list.  Otherwise throws NOT-UNIFIABLE."
-    (cons (list term variable) 
-                (subst1 term variable u))
-)
+  (cond ((occurs-in variable term)
+         (throw 'unify 'not-unifiable) )
+        (t (cons (list term variable) 
+                 (subst1 term variable u) )) ) )
 
 
 (defun miembro (e1 e2)
@@ -160,11 +161,12 @@
                 'error
             )
             (unificate (rest e1) (rest e2) u)
+            (if (equalp u 'error) 
+                'error
+            )
         )
     )
 )
-
-
 
 (defun atomp (s)
 
@@ -177,7 +179,7 @@
 
 (defun top (e1 e2 u)
   (cond
-    ((equalp e1 e2) NIL)
+    ((equalp e1 e2) u)
     ((variablep e1) ;si e1 es variable
       (if (miembro e1 e2)
         'error ; return error si es miembro
@@ -194,10 +196,10 @@
 (defun add-pair (term variable u)
   "Trys to add the pair (TERM VARIABLE) to the list U and
    return the new list.  Otherwise throws NOT-UNIFIABLE."
-  (cond ((occurs-in variable term)
-         (throw 'unify 'not-unifiable) )
-        (t (cons (list term variable) 
-                 (subst1 term variable u) )) ) )
+  (cons (list term variable) 
+                 (subst1 term variable u) ))
+
+
 ;;; DO-SUBST performs all substitutions in L on EXP in
 ;;; reverse order.
 (defun do-subst (exp l)
@@ -206,14 +208,8 @@
         (t (subst1 (first (first l)) ; (first l)= ((sustitusor)(sustituyendo))
                    (second (first l))
                    (do-subst exp (rest l)) )) ) ) ;recursivamente vuelve para sustituir segun las siguientes reglas noseke
-(setf sustituyendo 'a)
-(setf sustitusor '(? y))
-
 
 (defun subst1 (a b lst)
-
-
-
 ; subst1( (? c) (? b) ((P (? b) (? c)) )
   "Substitutes A for each occurrence of B in LST."
     (cond
@@ -227,12 +223,6 @@
        (t (cons (subst1 a b (first lst))
                 (subst1 a b (rest lst)) )) ) )
 
-(defun occurs-in (elt exp)
-  "Returns T if ELT occurs in EXP at any level. Comprueba que elt pertenezca a exp"
-  (cond ((eql elt exp) t)
-        ((atomp exp) nil)
-        (t (or (occurs-in elt (first exp))
-               (occurs-in elt (rest exp)) )) ) ) ;T si elt pertenece a exp
 
 (defun variablep (s)
   "Returns T if S is a known variable. Es el equivalente al antiguo is_var"
@@ -252,7 +242,7 @@
 (defparameter *literal2* '(p b (? y)))
 (defparameter *literal3* '(p (f (? x)) (g a (? y))))
 (defparameter *literal4* '(p (f (h b)) (g (? x) (? y))))
-(defparameter lista '(p a)
+(defparameter *literal5* '(p (? x)))
 (defparameter *literal6* '(p (f (? x))))
 (defparameter *literal7* '(p (? x) (f (? y)) (? x)))
 (defparameter *literal8* '(p (? z) (f (? z)) a))
@@ -276,5 +266,4 @@
             *literal8* (do-subst *literal8* u) )
   ) )
 
-(subst1 sustitusor sustituyendo lista)
 (test)
