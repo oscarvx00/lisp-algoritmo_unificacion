@@ -1,119 +1,3 @@
-(defun unificate-init (e1 e2)
-
-    (let ((u nil))
-        (if (eql (first e1) (first e2)) ; Comprueba que el primer elemento de ambas expresiones es el mismo
-            (unificate e1 e2 u)
-        )
-    )
-)
-
-(defun unificate (e1 e2 u)
-
-    (cond
-        ((atomp e1) ;equivalente al antiguo is_atom
-            (top e1 e2 u)
-        )
-        ((atomp e2)
-            (top e2 e1 u)
-        )
-        (T
-            (setf u (unificate (do-subst (first e1) u) (do-subst (first e2) u) u))
-            (if (equalp u 'error) 
-                'error
-            )
-            (unificate (rest e1) (rest e2) u)
-        )
-    )
-)
-
-
-
-(defun atomp (s)
-
-    (cond((atom s) T)
-    ((eq (first s) '?) T)
-    (t NIL)
-  )
-
-)
-
-(defun top (e1 e2 u)
-  (cond
-    ((equalp e1 e2) NIL)
-    ((variablep e1) ;si e1 es variable
-      (if (miembro e1 e2)
-        'error ; return error si es miembro
-        (add-pair e2 e1 u)
-      )
-    )
-    ((variablep e2)
-      (add-pair e1 e2 u)
-    )
-    (t 'error)   
-  )
-);fin defun
-
-(defun add-pair (term variable u)
-  "Trys to add the pair (TERM VARIABLE) to the list U and
-   return the new list.  Otherwise throws NOT-UNIFIABLE."
-  (cond ((occurs-in variable term)
-         (throw 'unify 'not-unifiable) )
-        (t (cons (list term variable) 
-                 (subst1 term variable u) )) ) )
-
-
-(defun miembro (e1 e2)
-    (unless (atom e2)
-        (member e1 e2)
-    )
-)
-
-(defun variablep (s)
-  "Returns T if S is a known variable."
-  (if (atom s) nil ;si es atomo devolver nil
-      (if ;si no lo es,
-        (and
-          (eq (first s) '?)
-          (eq (length s) 2)
-        ) t  ;y es una lista de len 2 con ? de primer argumento, ES UNA VARIABLE
-        nil ;en cualquier otro caso, NO ES VARIABLE
-      )
-    )
-  ;(member s '(x y z x1 x2 y1 y2 z1 z2 u v w)) )
-)
-
-(defun do-subst (exp l)
-  "Applies the substitutions of L to EXP."
-  (cond ((null l) exp)
-        (t (subst1 (first (first l))
-                   (second (first l))
-                   (do-subst exp (rest l)) )) ) )
-
-(defun subst1 (a b lst)
-  "Substitutes A for each occurrence of B in LST."
-    (cond
-       ((null lst) nil)
-       ((eql lst b) a)
-       ((atom lst) lst)
-       ((eql b (first lst))
-        (cons a (subst1 a b (rest lst))) )
-       ((atom (first lst))
-        (cons (first lst)(subst1 a b (rest lst))) )
-       (t (cons (subst1 a b (first lst))
-                (subst1 a b (rest lst)) )) ) )
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ;;; UNIFY.CL
 ;;; A Unification algorithm for literals in the Predicate Calculus,
@@ -258,6 +142,12 @@
 (defparameter *literal6* '(p (f (? x))))
 (defparameter *literal7* '(p (? x) (f (? y)) (? x)))
 (defparameter *literal8* '(p (? z) (f (? z)) a))
+
+(defparameter e1 '(p (f a (? x)) (? z)))
+(defparameter e2 '(p (? y) ((? w) d)))
+
+(defparameter e1No '(p (f a x) z))
+(defparameter e2No '(p y (w d)))
 
 ;;; Here's a function for demonstrating UNIFY.
 (defun show-unification (lit1 lit2)
