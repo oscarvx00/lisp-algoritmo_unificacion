@@ -112,6 +112,9 @@
 (defparameter *literal7* '(p x (f y) x))
 (defparameter *literal8* '(p z (f z) a))
 
+(defparameter e1No '(p (f a x) z))
+(defparameter e2No '(p y (w d)))
+
 ;;; Here's a function for demonstrating UNIFY.
 (defun show-unification (lit1 lit2)
   "Prints out both inputs and output from UNIFY."
