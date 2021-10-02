@@ -100,26 +100,17 @@
 
 (defun variablep (s)
   "Returns T if S is a known variable."
-  (if (atom s) nil ;si es atomo devolver nil
-      (if ;si no lo es,
-        (and
-          (eq (first s) '?)
-          (eq (length s) 2)
-        ) t  ;y es una lista de len 2 con ? de primer argumento, ES UNA VARIABLE
-        nil ;en cualquier otro caso, NO ES VARIABLE
-      )
-    )
-  ;(member s '(x y z x1 x2 y1 y2 z1 z2 u v w)) )
-)
+  (member s '(x y z x1 x2 y1 y2 z1 z2 u v w)) )
+
 ;;; Here is some test data:
-(defparameter *literal1* '(p (? x) (f a)))
-(defparameter *literal2* '(p b (? y)))
-(defparameter *literal3* '(p (f (? x)) (g a (? y))))
-(defparameter *literal4* '(p (f (h b)) (g (? x) (? y))))
-(defparameter *literal5* '(p (? x)))
-(defparameter *literal6* '(p (f (? x))))
-(defparameter *literal7* '(p (? x) (f (? y)) (? x)))
-(defparameter *literal8* '(p (? z) (f (? z)) a))
+(defparameter *literal1* '(p x (f a)))
+(defparameter *literal2* '(p b y))
+(defparameter *literal3* '(p (f x) (g a y)))
+(defparameter *literal4* '(p (f (h b)) (g x y)))
+(defparameter *literal5* '(p x))
+(defparameter *literal6* '(p (f x)))
+(defparameter *literal7* '(p x (f y) x))
+(defparameter *literal8* '(p z (f z) a))
 
 ;;; Here's a function for demonstrating UNIFY.
 (defun show-unification (lit1 lit2)

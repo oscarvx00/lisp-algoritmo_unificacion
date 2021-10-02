@@ -193,6 +193,7 @@
   )
 );fin defun
 
+
 (defun add-pair (term variable u)
   "Trys to add the pair (TERM VARIABLE) to the list U and
    return the new list.  Otherwise throws NOT-UNIFIABLE."
@@ -202,6 +203,17 @@
 
 ;;; DO-SUBST performs all substitutions in L on EXP in
 ;;; reverse order.
+
+
+
+(defparameter *s2* '( (a x) (y z) ((f (h)) k) ))
+(defparameter *p2* '( x g (k) f2 (z)))
+
+(defparameter *s3* '( (a (? x)) ((? y) (? z)) ((f (h)) k) ))
+(defparameter *p3* '( (? x) g (k) f2 ((? z))))
+
+
+
 (defun do-subst (exp l)
   "Applies the substitutions of L to EXP."
   (cond ((null l) exp)
@@ -214,9 +226,9 @@
   "Substitutes A for each occurrence of B in LST."
     (cond
        ((null lst) nil)
-       ((eql lst b) a)
+       ((equalp lst b) a)
        ((atomp lst) lst)
-       ((eql b (first lst))
+       ((equalp b (first lst))
         (cons a (subst1 a b (rest lst))) )
        ((atomp (first lst))
         (cons (first lst)(subst1 a b (rest lst))) )

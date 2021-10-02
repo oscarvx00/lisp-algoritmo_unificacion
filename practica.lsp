@@ -50,6 +50,9 @@
 (setf lista-aux-5 (cons 'P (list var-y)))
 (setf entrada-2 (append lista-aux-5 (list lista-aux-4)))
 
+(defparameter e1 '(p (f a x) z))
+(defparameter e2 '(p y (w d)))
+
 
 ;(setf arg1 (P (F A (? x)) (? z)))
 ;(setf arg2 (P (? y) ((? g) D)))
