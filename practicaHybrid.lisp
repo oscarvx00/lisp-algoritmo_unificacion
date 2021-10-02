@@ -37,28 +37,45 @@
    TERMLIST2 and thereby extend the list U of substitutions.
    If any failure occurs, throws NOT-UNIFIABLE."
   (cond
-    ; If equal, no substitution necessary:
-    ((equalp termlist1 termlist2) u)
-    ; Check for list length mismatch (a syntax error):
-    ((or (null termlist1) (null termlist2))
-     (throw 'unify 'not-unifiable) )
-    ; If TERMLIST1 is a variable, try to add a substitution:
-    ((variablep termlist1) (add-pair termlist2 termlist1 u))
-    ; Handle the case when TERMLIST2 is a variable similarly:
-    ((variablep termlist2) (add-pair termlist1 termlist2 u))
-    ; Now, if either expression is atomic, it is a
-    ; constant and there's no match since they're not equal:
-    ((or (atomp termlist1) (atomp termlist2))
-     (throw 'unify 'not-unifiable) )
-    ; The expressions must be non-atomic; do recursively.
-    ; Apply current substitutions before unifying the first of each.
+    ((or (equalp termlist1 'error) (equalp termlist2 'error))
+      'error
+    )
+    ((atomp termlist1)
+      (top termlist1 termlist2 u)
+    )
+    ((atomp termlist2)
+      (top termlist2 termlist1 u)
+    )
     (t (setf u (unify1 (do-subst (first termlist1) u)
                        (do-subst (first termlist2) u) 
                        u) )
+        (if (equalp u 'error)
+          'error
+        )
        ; Now unify the rest of each.
        (unify1 (rest termlist1) (rest termlist2) u) )
        ) )
 
+
+(defun top (e1 e2 u)
+  (cond
+    ((equalp e1 e2) u)
+    ((or (null e1) (null e2))
+      'error
+    )
+    ((variablep e1) ;si e1 es variable
+      (if (miembro e1 e2)
+        'error ; return error si es miembro
+        (add-pair e2 e1 u)
+      )
+    )
+    ((variablep e2)
+      (add-pair e1 e2 u)
+    )
+    ;((atomp e1))
+    (t 'error)   
+  )
+);fin defun
 
 (defun atomp (s)
 
@@ -69,21 +86,7 @@
 
 )
 
-(defun top (e1 e2 u)
-  (cond
-    ((equalp e1 e2) u)
-    ((variablep e1) ;si e1 es variable
-      (if (miembro e1 e2)
-        'error ; return error si es miembro
-        (add-pair e2 e1 u)
-      )
-    )
-    ((variablep e2)
-      (add-pair e1 e2 u)
-    )
-    (t 'error)   
-  )
-);fin defun
+
 
 
 (defun add-pair (term variable u)
@@ -109,6 +112,9 @@
 (defun do-subst (exp l)
   "Applies the substitutions of L to EXP."
   (cond ((null l) exp)
+        ((equalp l 'error)
+          'error
+        )
         (t (subst1 (first (first l)) ; (first l)= ((sustitusor)(sustituyendo))
                    (second (first l))
                    (do-subst exp (rest l)) )) ) ) ;recursivamente vuelve para sustituir segun las siguientes reglas noseke
