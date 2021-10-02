@@ -11,8 +11,9 @@
   (cond 
     ((equalp entrada lista) t)
     ((atomp lista) nil)
-    (t (or (miembro entrada (first lista))
-            (miembro entrada (rest lista)) 
+    (t (or 
+          (miembro entrada (first lista))
+          (miembro entrada (rest lista)) 
         )
     ) 
   ) 
@@ -35,7 +36,6 @@
         (if (equalp theta 'error)
           'error
         )
-       ; Now unify the rest of each.
        (unificar (rest e1) (rest e2) theta) 
     )
   ) 
@@ -104,7 +104,6 @@
   ) 
 )
 
-
 (defun variablep (x)
   (if (atom x) nil ;si es atomo devolver nil
     (if ;si no lo es,
@@ -117,42 +116,68 @@
   )
 )
 
-
-;;; Here is some test data:
-(defparameter *literal1* '(p (? x) (f a)))
-(defparameter *literal2* '(p b (? y)))
-(defparameter *literal3* '(p (f (? x)) (g a (? y))))
-(defparameter *literal4* '(p (f (h b)) (g (? x) (? y))))
-(defparameter *literal5* '(p (? x)))
-(defparameter *literal6* '(p (f (? x))))
-(defparameter *literal7* '(p (? x) (f (? y)) (? x)))
-(defparameter *literal8* '(p (? z) (f (? z)) a))
+;Casos de prueba
 
 (defparameter e1 '(p (f a (? x)) (? z)))
 (defparameter e2 '(p (? y) ((? w) d)))
 
+
+
 ;;; Here's a function for demonstrating UNIFY.
-(defun show-unification (lit1 lit2)
-  "Prints out both inputs and output from UNIFY."
-  (format t "~%Result of UNIFY on ~s and ~s is ~s."
-    lit1 lit2 (unificar-init lit1 lit2)
+(defun test-unificar (e1 e2)
+  (format t "~%(unificar ~s ~s): ~s."
+    e1 e2 (unificar-init e1 e2)
   )
 )
 
 (defun test ()
-  "Calls UNIFY with sample arguments."
-  (show-unification *literal1* *literal2*)
-  (show-unification *literal3* *literal4*)
-  (show-unification *literal5* *literal6*)
-  (show-unification *literal7* *literal8*)
-  (show-unification e1 e2)
+  (test-unificar e1 e2)
+  (let ((theta (unificar-init e1 e2)))
+    (format t "~%Aplicando theta a ~s obtenemos ~s."
+            e1 (aplicarsustitucion e1 theta) )
+    (format t "~%Aplicando theta a ~s obtenemos ~s."
+            e2 (aplicarsustitucion e2 theta) )
+  ) 
+  (test-aplicarsustitucion)
+  (test-miembro)
+  (test-anadir)
+  (test-sustituirexpresion)
+)
 
-  (let ((theta (unificar-init *literal7* *literal8*)))
-    (format t "~%Result of applying U to ~s is ~s."
-            *literal7* (aplicarsustitucion *literal7* theta) )
-    (format t "~%Result of applying U to ~s is ~s."
-            *literal8* (aplicarsustitucion *literal8* theta) )
-  ) )
-  
+(defun test-aplicarsustitucion ()
+  (setf s1 '( (a (? x)) ((? y) (? z)) ((f (h)) k) ))
+  (setf p1 '( (? x) g (k) f2 ((? z))))
+  (format t "~%Resultado de aplicar la sustitucion ~s a la lista ~s es: ~s"
+    s1 p1 (aplicarsustitucion p1 s1))
+)
+
+(defun test-miembro()
+  (setf s2 '( (a (? x))))
+  (setf p2 '( (? x) ))
+     (format t "~%(miembro ~s ~s): ~s"
+    p2 s2 (miembro p2 s2))
+)
+
+(defun anadir (termino variable theta)
+  (cons (list termino variable) 
+    (sustituirexpresion termino variable theta)   
+  )
+)
+
+(defun test-anadir()
+  (setf p3 '( P (? y) ))
+  (setf s3 '(? x) )
+  (setf t3 '(((F A) (? Y)) (B (? X))))
+  (format t "~%(anadir ~s ~s): ~s"
+  p3 s3 (anadir p3 s3 t3))
+)
+
+(defun test-sustituirexpresion ()
+  (setf varSustitusora 'j)
+  (setf varSustituida '(? x))
+  (setf listaTest '((? y) h k ((? x))))
+  (format t "~%(sustituirexpresion ~s ~s ~s): ~s"
+    varSustituida varSustitusora listaTest (sustituirexpresion varSustitusora varSustituida listaTest))
+)
 
 (test)
