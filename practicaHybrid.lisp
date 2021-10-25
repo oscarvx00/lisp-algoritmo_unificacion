@@ -158,12 +158,6 @@
     p2 s2 (miembro p2 s2))
 )
 
-(defun anadir (termino variable theta)
-  (cons (list termino variable) 
-    (sustituirexpresion termino variable theta)   
-  )
-)
-
 (defun test-anadir()
   (setf p3 '( P (? y) ))
   (setf s3 '(? x) )
